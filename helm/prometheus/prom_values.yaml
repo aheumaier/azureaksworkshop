@@ -1,0 +1,47 @@
+global:
+  rbacEnable: true
+
+alertmanager:
+  storageSpec:
+    volumeClaimTemplate:
+      spec:
+        storageClassName: managed-premium
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
+
+prometheus:
+  storageSpec:
+    volumeClaimTemplate:
+      spec:
+        storageClassName: managed-premium
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
+
+grafana:
+  auth:
+    anonymous:
+      enabled: "false"
+  adminPassword: "Test12345#"
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      kubernetes.io/tls-acme: "true"
+    hosts: 
+      - grafana.test.wynd.eu
+    tls:
+      - secretName: grafana-tls
+        hosts:
+          - grafana.test.wynd.eu
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: managed-premium
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi

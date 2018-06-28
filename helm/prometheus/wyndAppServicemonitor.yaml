@@ -1,0 +1,13 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: wynd-app-monitor
+  labels:
+    app: wynd-app-monitor
+spec:
+  selector:
+    matchLabels:
+      app: wynd-app
+  endpoints:
+  - port: 80
+    interval: 10s
