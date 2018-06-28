@@ -4,7 +4,7 @@
   "parameters": {
     "dnsNamePrefix": {
       "type": "string",
-      "defaultValue": "consors",
+      "defaultValue": "contoso",
       "metadata": {
         "description": "Sets the Domain name prefix for the cluster.  The concatenation of the domain name and the regionalized DNS zone make up the fully qualified domain name associated with the public IP address."
       }
@@ -20,7 +20,7 @@
     },
     "agentVMSize": {
       "type": "string",
-      "defaultValue": "Standard_DS3_v2",
+      "defaultValue": "Standard_DS2_v2",
       "metadata": {
         "description": "The size of the Virtual Machine."
       }
@@ -71,13 +71,10 @@
     "ServicePrincipalClientID": {
       "type": "string"
     },
-    "keyVaultSecretVaultID": {
+    "ServicePrincipalClientSecret": {
       "type": "string"
     },
-    "keyVaultSecretName": {
-      "type": "string"
-    },
-    "subnetID": {
+    "vmSubnetID": {
       "type": "string"
     }
   },
@@ -90,7 +87,7 @@
     {
       "type": "Microsoft.ContainerService/managedClusters",
       "apiVersion": "2018-03-31",
-      "name": "[concat(parameters('dnsNamePrefix'),resourceGroup().name)]",
+      "name": "[parameters('dnsNamePrefix')]",
       "location": "[resourceGroup().location]",
       "properties": {
         "kubernetesVersion": "1.10.3",
@@ -101,9 +98,9 @@
             "count": "[parameters('agentCount')]",
             "vmSize": "[parameters('agentVMSize')]",
             "osDiskSizeGB": "[parameters('osDiskSizeGB')]",
-            "dnsPrefix": "string",
+            "dnsPrefix": "[parameters('dnsNamePrefix')]",
             "storageProfile": "ManagedDisks",
-            "vnetSubnetID": "[parameters('subnetID')]",
+            "vnetSubnetID": "[parameters('vmSubnetID')]",
             "maxPods": 50,
             "osType": "Linux"
           }
@@ -118,24 +115,21 @@
             ]
           }
         },
-        "servicePrincipalProfile": {
-          "clientId": "[parameters('ServicePrincipalClientID')]",
-          "keyvaultSecretRef": {
-            "vaultID": "[parameters('keyVaultSecretVaultID')]",
-            "secretName": "[parameters('keyVaultSecretName')]"
-          }
-        },
         "addonProfiles": {
           "httpApplicationRouting": {
-            "enabled": "[variables('enableHttpApplicationRouting')]"
+            "enabled": true
           }
         },
-        "enableRBAC": false,
+        "enableRBAC": true,
+        "servicePrincipalProfile": {
+          "clientId": "[parameters('ServicePrincipalClientID')]",
+          "secret": "[parameters('ServicePrincipalClientSecret')]"
+        },
         "networkProfile": {
           "networkPlugin": "azure",
           "serviceCidr": "10.0.16.0/20",
           "dnsServiceIP": "10.0.16.10",
-          "dockerBridgeCidr": "172.16.0.1/24"
+          "dockerBridgeCidr": "172.17.0.1/16"
         }
       }
     }
@@ -143,11 +137,7 @@
   "outputs": {
     "masterFQDN": {
       "type": "string",
-      "value": "[reference(concat('Microsoft.ContainerService/managedClusters/',parameters('dnsNamePrefix'),resourceGroup().name) )]"
-    },
-    "sshMaster0": {
-      "type": "string",
-      "value": "[concat('ssh ', parameters('adminUsername'), '@', reference(concat('Microsoft.ContainerService/managedClusters/', parameters('dnsNamePrefix'),resourceGroup().name) , ' -A -p 22'))]"
+      "value": "[resourceId(resourceGroup().name, 'Microsoft.ContainerService/managedClusters/',parameters('dnsNamePrefix') )]"
     }
   }
 }
